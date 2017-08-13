@@ -1,0 +1,68 @@
+---
+title: "Taxi_kaggle"
+author: "Ariel Erijman"
+date: "August 10, 2017"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(lubridate)
+```
+
+### <font color=blue>__1st step: describe the data__</font> 
+```{r echo=FALSE}
+train <- read.csv('./train_short.csv')
+str(train)
+summary(train)
+```
+
+### <font color=blue>__Structure and Summary of random 100000 samples from the dataset__</font>
+1. 1 id per sample
+2. 2 vendors with fairly equally distributed number of trips
+3. pickup and dropoff datetimes
+4. Number of passengers per trip
+5. Pickup and dripoff x,y locations
+6. Store and fwd flag ???
+7. Trip duration has a median = 11min and mean = 15min. The min(1min) and max(23hs) don't make much sense to me...
+
+```{r echo = FALSE}
+# Date & time to integers
+train$hour <- as.POSIXlt(train$pickup_datetime)$hour
+train$day <- as.POSIXlt(train$pickup_datetime)$mday
+train$month <- as.POSIXlt(train$pickup_datetime)$mon
+train$weekday <- as.POSIXlt(train$pickup_datetime)$wday
+```
+
+### <font color=blue>__Distribution of trip duration__</font>
+```{r echo=FALSE}
+hist(train$trip_duration[train$trip_duration<=6000], breaks = 100, main = "Trip duration")
+```
+
+### <font color=blue>__What are the most common hours for a trip in NY?__</font>
+It looks clear that mostf the trips are between ~9AM and ~19PM.
+```{r echo=FALSE}
+boxplot(train$hour, main="Hours stats for a trip in NY?")
+```
+
+### <font color=blue>__How does the duration varies with the hour of the day?__</font>
+The single significant difference in trip duration influenced by time of the day is @5&6 AM
+```{r echo=FALSE}
+# define a subset of train with lower values of trip duration to overcome the vast ammount of outlyers
+train_less <- train[train$trip_duration < 1000,]
+boxplot(
+  train_less$trip_duration~train_less$hour, 
+  xlab='hour',
+  ylab='trip duration',
+  main="Trip duration by hours"
+  )
+```
+
+### <font color=blue>__Does the # of passengers has something to do with trip duration?__</font>
+Should we include 0 passengers trips?
+>5 passengers probably includes a bigger car. Nevertheless, it does not affect the trip duration at all
+```{r echo=FALSE}
+boxplot(train_less$trip_duration~train_less$passenger_count, main="Trip duration by passenger count")
+```
